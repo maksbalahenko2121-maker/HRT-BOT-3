@@ -75,7 +75,7 @@ LEVELS = {
 
     6: {"name": "Аня Форджер (Агент Сумрак-младший)", "need": 22000, "reward": "NFT Spy Agaric", "photo": "AgACAgIAAxkBAAM7avmpi2Kb1l36v_sHCfmFpXno8kkAAkEeaxuKkshLp4-8UNuOrlABAAMCAAN5AAM9BA"},
 
-    7: {"name": "Саске Учиха (Мститель на диете)", "need": 30000, "reward": "Jester Hat": ""},
+    7: {"name": "Саске Учиха (Мститель на диете)", "need": 30000, "reward": "Jester Hat", "photo": ""},
 
     8: {"name": "Зеницу (Спящий гром)", "need": 38000, "reward": "Mousse Cave": ""},
 
