@@ -1693,6 +1693,10 @@ async def set_bot_commands():
 
 async def main():
 
+    from promo import promo_router
+
+    dp.include_router(promo_router)
+
     await set_bot_commands()
 
     await bot.delete_webhook(drop_pending_updates=True)
