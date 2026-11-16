@@ -75,15 +75,15 @@ LEVELS = {
 
     6: {"name": "Аня Форджер (Агент Сумрак-младший)", "need": 22000, "reward": "NFT Spy Agaric", "photo": "AgACAgIAAxkBAAM7avmpi2Kb1l36v_sHCfmFpXno8kkAAkEeaxuKkshLp4-8UNuOrlABAAMCAAN5AAM9BA"},
 
-    7: {"name": "Саске Учиха (Мститель на диете)", "need": 30000, "reward": "Ракета (50 ⭐)", "photo": ""},
+    7: {"name": "Саске Учиха (Мститель на диете)", "need": 30000, "reward": "Jester Hat": ""},
 
-    8: {"name": "Зеницу (Спящий гром)", "need": 38000, "reward": "Торт (50 ⭐)", "photo": ""},
+    8: {"name": "Зеницу (Спящий гром)", "need": 38000, "reward": "Торт ("Mousse Cave": ""},
 
-    9: {"name": "Иноске (Кабан без тормозов)", "need": 46000, "reward": "Букет (50 ⭐)", "photo": ""},
+    9: {"name": "Иноске (Кабан без тормозов)", "need": 46000, "reward": "?": ""},
 
-    10: {"name": "Какаши (Читатель 18+)", "need": 55000, "reward": "Алмаз (100 ⭐)", "photo": ""},
+    10: {"name": "Какаши (Читатель 18+)", "need": 55000, "reward": "?": ""},
 
-    11: {"name": "Луффи (Резиновый обжора)", "need": 65000, "reward": "Кубок (100 ⭐)", "photo": ""},
+    11: {"name": "Луффи (Резиновый обжора)", "need": 65000, "reward": "?": ""},
 
     12: {"name": "Зоро (Потерялся в меню)", "need": 75000, "reward": "NFT Homemade Cake", "photo": ""},
 
