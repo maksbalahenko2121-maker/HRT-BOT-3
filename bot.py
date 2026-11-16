@@ -63,17 +63,17 @@ BANNERS = {
 
 LEVELS = {
 
-    1: {"name": "Наруто (Генин на минималках)", "need": 500, "reward": "Мишка (15 ⭐)", "photo": ""},
+    1: {"name": "Наруто (Генин на минималках)", "need": 500, "reward": "Мишка (15 ⭐)", "photo": "AgACAgIAAxkBAAMxavmpcpkyR321bXlTcO03f0kLewYAAjweaxuKkshLF3b_juZ9rVIBAAMCAAN4AAM9BA"},
 
-    2: {"name": "Танджиро (Угольный барон)", "need": 2000, "reward": "Кольцо (100 ⭐)", "photo": ""},
+    2: {"name": "Танджиро (Угольный барон)", "need": 2000, "reward": "Кольцо (100 ⭐)", "photo": "AgACAgIAAxkBAAMzavmpev7gL0gD-vQSk67j96d0wv0AAj0eaxuKkshL00Zu3USVDb8BAAMCAAN5AAM9BA"},
 
-    3: {"name": "Годжо Сатору (Без повязки)", "need": 6000, "reward": "NFT Pet Snake", "photo": ""},
+    3: {"name": "Годжо Сатору (Без повязки)", "need": 6000, "reward": "NFT Pet Snake", "photo": "AgACAgIAAxkBAAM1avmpfkYMtA3verNLxRV7Tzo7liwAAj4eaxuKkshLL-zRwHyaDIgBAAMCAAN5AAM9BA"},
 
-    4: {"name": "Итачи Учиха (Мастер яичницы)", "need": 10000, "reward": "NFT Input Key", "photo": ""},
+    4: {"name": "Итачи Учиха (Мастер яичницы)", "need": 10000, "reward": "NFT Input Key", "photo": "AgACAgIAAxkBAAM3avmpg_3ZLkv5F-4cuC3KuHTe794AAj8eaxuKkshLnTXQ_6BWI3oBAAMCAAN5AAM9BA"},
 
-    5: {"name": "Сейлор Мун (В поисках обеда)", "need": 15000, "reward": "NFT Moon Pendant", "photo": ""},
+    5: {"name": "Сейлор Мун (В поисках обеда)", "need": 15000, "reward": "NFT Moon Pendant", "photo": "AgACAgIAAxkBAAM5avmpiJYXaFcLGINflYIF8kJk4kAAAkAeaxuKkshLXfUwICm8tfQBAAMCAAN5AAM9BA"},
 
-    6: {"name": "Аня Форджер (Агент Сумрак-младший)", "need": 22000, "reward": "NFT Spy Agaric", "photo": ""},
+    6: {"name": "Аня Форджер (Агент Сумрак-младший)", "need": 22000, "reward": "NFT Spy Agaric", "photo": "AgACAgIAAxkBAAM7avmpi2Kb1l36v_sHCfmFpXno8kkAAkEeaxuKkshLp4-8UNuOrlABAAMCAAN5AAM9BA"},
 
     7: {"name": "Саске Учиха (Мститель на диете)", "need": 30000, "reward": "Ракета (50 ⭐)", "photo": ""},
 
