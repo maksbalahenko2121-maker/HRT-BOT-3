@@ -1609,6 +1609,326 @@ async def process_payment(message: types.Message):
 
         await message.answer(f"📦 <b>Ты вскрыл ящик и вытащил +{bonus}⚡!</b>", parse_mode="HTML")
 
+@dp.callback_query(F.data.startswith("back_"))
+
+async def cb_back(call: types.CallbackQuery):
+
+    _, target_str = call.data.split("_")
+
+    target_id = int(target_str)
+
+    if not check_owner(call, target_id):
+
+        return await call.answer("Вызови своего героя командой /card", show_alert=True)
+
+    await send_or_edit_card(call.message, get_user(target_id), is_edit=True)
+
+ 
+
+ 
+
+@dp.callback_query(F.data.startswith("levels_"))
+
+async def cb_levels(call: types.CallbackQuery):
+
+    _, target_str = call.data.split("_")
+
+    target_id = int(target_str)
+
+    if not check_owner(call, target_id):
+
+        return await call.answer("Вызови своё меню командой /card", show_alert=True)
+
+    user = get_user(target_id)
+
+    _, _, lvl, _, _, _, _ = user
+
+    kb = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="⬅️ Вернуться к герою", callback_data=f"back_{target_id}")]])
+
+    await send_or_edit_screen(call.message, get_levels_text(lvl), kb, photo_id=BANNERS.get("levels"), is_edit=True)
+
+ 
+
+ 
+
+@dp.callback_query(F.data.startswith("top_"))
+
+async def cb_top(call: types.CallbackQuery):
+
+    _, target_str = call.data.split("_")
+
+    target_id = int(target_str)
+
+    if not check_owner(call, target_id):
+
+        return await call.answer("Открой свой топ командой /top", show_alert=True)
+
+    kb = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="⬅️ Вернуться к герою", callback_data=f"back_{target_id}")]])
+
+    await send_or_edit_screen(call.message, get_top_text(), kb, photo_id=BANNERS.get("top"), is_edit=True)
+
+ 
+
+ 
+
+@dp.callback_query(F.data.startswith("ref_"))
+
+async def cb_ref(call: types.CallbackQuery):
+
+    _, target_str = call.data.split("_")
+
+    target_id = int(target_str)
+
+    if not check_owner(call, target_id):
+
+        return await call.answer("Открой свою ссылку командой /ref", show_alert=True)
+
+    bot_info = await bot.get_me()
+
+    kb = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="⬅️ Вернуться к герою", callback_data=f"back_{target_id}")]])
+
+    await send_or_edit_screen(call.message, get_ref_text(target_id, bot_info.username), kb, photo_id="", is_edit=True)
+
+ 
+
+ 
+
+@dp.callback_query(F.data.startswith("farm_"))
+
+async def cb_farm(call: types.CallbackQuery):
+
+    _, target_str = call.data.split("_")
+
+    target_id = int(target_str)
+
+    if not check_owner(call, target_id):
+
+        return await call.answer("Не трогай чужого персонажа! Напиши /card", show_alert=True)
+
+ 
+
+    user = get_user(target_id)
+
+    uid, uname, level, energy, last_farm, amulet_until, _ = user
+
+    now = int(time.time())
+
+    lvl_data = LEVELS.get(level)
+
+    if not lvl_data:
+
+        return await call.answer("Уровень в разработке!", show_alert=True)
+
+ 
+
+    if now - last_farm < COOLDOWN:
+
+        rem = (last_farm + COOLDOWN) - now
+
+        msg = random.choice(WAIT_TEXTS).format(h=rem // 3600, m=(rem % 3600) // 60)
+
+        return await call.answer(msg, show_alert=True)
+
+ 
+
+    gain = random.randint(50, 150) if amulet_until > now else random.randint(1, 50)
+
+    new_energy = min(energy + gain, lvl_data.get("need"))
+
+    cur.execute("UPDATE users SET energy = ?, last_farm = ?, notified = 0 WHERE user_id = ?", (new_energy, now, uid))
+
+    db.commit()
+
+ 
+
+    referrer_id = process_referral_reward(uid)
+
+    if referrer_id:
+
+        try:
+
+            await bot.send_message(referrer_id, f"🎉 <b>Твой ученик @{uname} прошёл первую тренировку!</b>\nТебе начислено <b>+50⚡</b> к текущему герою!", parse_mode="HTML")
+
+        except Exception:
+
+            pass
+
+ 
+
+    await call.answer(random.choice(FARM_TEXTS).format(gain=gain), show_alert=True)
+
+    await send_or_edit_card(call.message, get_user(uid), is_edit=True)
+
+
+
+
+
+@dp.callback_query(F.data.startswith("claim_"))
+
+async def cb_claim(call: types.CallbackQuery):
+
+    _, target_str = call.data.split("_")
+
+    target_id = int(target_str)
+
+    if not check_owner(call, target_id):
+
+        return await call.answer("Это чужой приз!", show_alert=True)
+
+ 
+
+    user = get_user(target_id)
+
+    uid, uname, level, energy, _, _, _ = user
+
+    lvl_data = LEVELS.get(level)
+
+    if not lvl_data or energy < lvl_data.get("need"):
+
+        return await call.answer("Сначала докачай энергию до конца!", show_alert=True)
+
+ 
+
+    reward_name = lvl_data.get("reward")
+
+    cur.execute("INSERT INTO claims (user_id, username, level, reward) VALUES (?, ?, ?, ?)", (uid, uname, level, reward_name))
+
+    cur.execute("UPDATE users SET level = ?, energy = 0, notified = 1 WHERE user_id = ?", (level + 1, uid))
+
+    db.commit()
+
+ 
+
+    await bot.send_message(ADMIN_ID, f"🎉 <b>НОВАЯ ЗАЯВКА НА ПОДАРОК!</b>\nИгрок: @{uname} (ID: <code>{uid}</code>)\nУровень: {level}\nПриз: <b>{reward_name}</b>\n\nУправление: /admin", parse_mode="HTML")
+
+    await call.answer("🎉 Заявка на подарок отправлена админу!", show_alert=True)
+
+    await send_or_edit_card(call.message, get_user(uid), is_edit=True)
+
+ 
+
+ 
+
+@dp.callback_query(F.data.startswith("shop_"))
+
+async def cb_shop(call: types.CallbackQuery):
+
+    _, target_str = call.data.split("_")
+
+    target_id = int(target_str)
+
+    if not check_owner(call, target_id):
+
+        return await call.answer("Открой свою лавку командой /shop", show_alert=True)
+
+    await send_or_edit_screen(call.message, get_shop_text(), shop_keyboard(target_id), photo_id=BANNERS.get("shop"), is_edit=True)
+
+ 
+
+ 
+
+@dp.callback_query(F.data.startswith("buy_"))
+
+async def cb_buy(call: types.CallbackQuery):
+
+    _, item, target_str = call.data.split("_")
+
+    target_id = int(target_str)
+
+    if not check_owner(call, target_id):
+
+        return await call.answer("Это чужое меню!", show_alert=True)
+
+ 
+
+    prices_map = {
+
+        "amulet": ("Амулет удачи на 48ч", "Добыча 50-150 энергии без лени героя", 40),
+
+        "case": ("Кейс с удачей", "Случайный бонус от 1 до 100 энергии прямо сейчас", 25),
+
+        "skip": ("Попытка прорыва уровня", "Запрещённая техника мгновенного закрытия уровня", 100),
+
+    }
+
+    title, desc, amount = prices_map.get(item)
+
+    await call.message.answer_invoice(title=title, description=desc, payload=item, currency="XTR", prices=[LabeledPrice(label=title, amount=amount)])
+
+    await call.answer()
+
+ 
+
+ 
+
+@dp.pre_checkout_query()
+
+async def process_pre_checkout(pre_checkout_query: PreCheckoutQuery):
+
+    await bot.answer_pre_checkout_query(pre_checkout_query.id, ok=True)
+
+ 
+
+ 
+
+@dp.message(F.successful_payment)
+
+async def process_payment(message: types.Message):
+
+    payload = message.successful_payment.invoice_payload
+
+    paid_stars = message.successful_payment.total_amount
+
+    uid = message.from_user.id
+
+    user = get_user(uid, message.from_user.username)
+
+    _, uname, level, energy, _, amulet_until, _ = user
+
+    now = int(time.time())
+
+ 
+
+    cur.execute("UPDATE users SET stars_spent = stars_spent + ? WHERE user_id = ?", (paid_stars, uid))
+
+    cur.execute("INSERT INTO payments (user_id, username, item, amount, created_at) VALUES (?, ?, ?, ?, ?)", (uid, uname, payload, paid_stars, now))
+
+    db.commit()
+
+ 
+
+    lvl_data = LEVELS.get(level)
+
+    if not lvl_data:
+
+        return
+
+    need = lvl_data.get("need")
+
+ 
+
+    if payload == "amulet":
+
+        new_until = max(amulet_until, now) + (48 * 3600)
+
+        cur.execute("UPDATE users SET amulet_until = ? WHERE user_id = ?", (new_until, uid))
+
+        db.commit()
+
+        await message.answer("🔮 <b>Амулет удачи надет!</b> Ближайшие 48 часов герой пашет на максимум (50–150⚡)!", parse_mode="HTML")
+
+    elif payload == "case":
+
+        bonus = random.randint(1, 100)
+
+        new_energy = min(energy + bonus, need)
+
+        cur.execute("UPDATE users SET energy = ? WHERE user_id = ?", (new_energy, uid))
+
+        db.commit()
+
+        await message.answer(f"📦 <b>Ты вскрыл ящик и вытащил +{bonus}⚡!</b>", parse_mode="HTML")
+
     elif payload == "skip":
 
         if random.randint(1, 100) <= 5:
