@@ -283,6 +283,10 @@ cur.execute("CREATE TABLE IF NOT EXISTS payments (id INTEGER PRIMARY KEY AUTOINC
 
 cur.execute("CREATE TABLE IF NOT EXISTS referrals (referred_id INTEGER PRIMARY KEY, referrer_id INTEGER, rewarded INTEGER DEFAULT 0)")
 
+cur.execute("CREATE TABLE IF NOT EXISTS promocodes (code TEXT PRIMARY KEY, reward INTEGER, uses_left INTEGER)")
+
+cur.execute("CREATE TABLE IF NOT EXISTS promo_used (user_id INTEGER, code TEXT, PRIMARY KEY (user_id, code))")
+
 db.commit()
 
 def get_user(user_id, username=""):
@@ -2003,20 +2007,130 @@ async def set_bot_commands():
 
         BotCommand(command="ref", description="👥 Пригласить друга (+50⚡)"),
 
+        BotCommand(command="promo", description="🎟 Ввести промокод"),
+
     ]
 
     await bot.set_my_commands(commands)
 
  
 
+
+@dp.message(Command("promo"))
+
+async def cmd_use_promo(message: types.Message):
+
+    parts = (message.text or "").split(maxsplit=1)
+
+    if len(parts) < 2:
+
+        return await message.reply("🎟 <b>Как активировать промокод:</b>\nНапиши <code>/promo ТВОЙ_КОД</code>", parse_mode="HTML")
+
+ 
+
+    _, raw_code = parts
+
+    code = raw_code.strip().upper()
+
+    uid = message.from_user.id
+
+    user = get_user(uid, message.from_user.username)
+
+    _, _, level, current_energy, _, _, _ = user
+
+ 
+
+    cur.execute("SELECT reward, uses_left FROM promocodes WHERE code = ?", (code,))
+
+    promo = cur.fetchone()
+
+    if not promo:
+
+        return await message.reply("❌ Такого промокода не существует или он уже закончился!")
+
+ 
+
+    reward, uses_left = promo
+
+    if uses_left <= 0:
+
+        return await message.reply("😢 Все активации этого промокода уже разобрали!")
+
+ 
+
+    cur.execute("SELECT 1 FROM promo_used WHERE user_id = ? AND code = ?", (uid, code))
+
+    if cur.fetchone():
+
+        return await message.reply("⚠️ Ты уже активировал этот промокод ранее!")
+
+ 
+
+    lvl_data = LEVELS.get(level)
+
+    need = lvl_data.get("need") if lvl_data else (current_energy + reward)
+
+    new_energy = min(current_energy + reward, need)
+
+ 
+
+    cur.execute("UPDATE users SET energy = ? WHERE user_id = ?", (new_energy, uid))
+
+    cur.execute("UPDATE promocodes SET uses_left = uses_left - 1 WHERE code = ?", (code,))
+
+    cur.execute("INSERT INTO promo_used (user_id, code) VALUES (?, ?)", (uid, code))
+
+    db.commit()
+
+ 
+
+    await message.reply(f"🎉 <b>Промокод {code} активирован!</b>\nНачислено <b>+{reward}⚡</b>! Проверить шкалу: /card", parse_mode="HTML")
+
+ 
+
+ 
+
+@dp.message(Command("addpromo"))
+
+async def cmd_add_promo(message: types.Message):
+
+    if message.from_user.id != ADMIN_ID:
+
+        return
+
+ 
+
+    parts = (message.text or "").split()
+
+    if len(parts) != 4:
+
+        return await message.reply("🛠 <b>Формат:</b> <code>/addpromo КОД ЭНЕРГИЯ КОЛИЧЕСТВО</code>\nПример: <code>/addpromo RAMEN 150 20</code>", parse_mode="HTML")
+
+ 
+
+    _, raw_code, reward_str, uses_str = parts
+
+    if not reward_str.isdigit() or not uses_str.isdigit():
+
+        return await message.reply("❌ Энергия и количество активаций должны быть числами!")
+
+ 
+
+    code = raw_code.strip().upper()
+
+    cur.execute("INSERT OR REPLACE INTO promocodes (code, reward, uses_left) VALUES (?, ?, ?)", (code, int(reward_str), int(uses_str)))
+
+    db.commit()
+
+ 
+
+    await message.reply(f"✅ <b>Промокод создан!</b>\n🎟 Код: <code>{code}</code>\n⚡ Награда: <b>+{reward_str}⚡</b>\n👥 Активаций: <b>{uses_str} шт.</b>", parse_mode="HTML")
+
+
  
 
 async def main():
-
-    from promo import promo_router
-
-    dp.include_router(promo_router)
-
+    
     await set_bot_commands()
 
     await bot.delete_webhook(drop_pending_updates=True)
